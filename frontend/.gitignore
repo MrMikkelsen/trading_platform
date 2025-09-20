@@ -1,0 +1,9 @@
+dist
+
+# Should not be needed - there should be import scripts to recreate them
+backend/databases/stockPrices.db
+backend/databases/*.sqlite
+backend/databases/*.sqlite3
+
+stock-data/*.csv
+node_modules/

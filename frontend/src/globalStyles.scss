@@ -1,0 +1,63 @@
+* {
+    padding: 0;
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    box-sizing: border-box;
+}
+
+:root {
+    --main-bg-color: #e2e6ed;
+    --main-text-color: #3c3d42;
+    --main-lighter-text-color: #2e2e2e;
+    --darker-blue: #15416b;
+    --darker-blue-light: hsl(209, 67%, 30%);
+    --saldo-color: #8aa9c5;
+    --broken-white: #d4e0ec;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: var(--main-bg-color);
+    width: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+    color: var(--main-text-color);
+}
+
+.green {
+    color: rgb(82, 177, 114) !important;
+}
+
+.red {
+    color: rgb(240, 81, 81);
+}
+
+.pointer {
+    cursor: pointer !important;
+}
+
+.user-history {
+    height: 400px !important;
+    overflow-y: scroll;
+}
+
+.user-history::-webkit-scrollbar {
+    display: none;
+}
+
+
+/* Hide scrollbar for IE, Edge and Firefox */
+
+.user-history {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}

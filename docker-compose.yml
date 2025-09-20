@@ -1,0 +1,108 @@
+# creating a volume to be able to persist data between Postgres container restarts
+version: "3"
+volumes:
+  frontend:
+  stock_db_data:
+  redis_data:
+  
+services:
+  time:
+    image: hackathonlinc.azurecr.io/time
+    restart: always
+    build:
+      context: .
+      dockerfile: ./time/Dockerfile
+    depends_on:
+      #- pgsql 
+      - vue 
+    ports:
+      - 5004:5004
+    # volumes:
+    #   - ./time:/time
+    #command: gunicorn --bind 0.0.0.0:5004 app:app
+  
+  python:
+    # we are not going to use the Python image as is but rather tweak one to our needs
+    restart: always 
+    image: hackathonlinc.azurecr.io/python
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    depends_on:
+      - redis
+    # using port 80 for convenience so we can access localhost directly without specifying the port
+    ports:
+      - 5000:5000
+    command: gunicorn --bind 0.0.0.0:5000 -w 24 -k gevent --worker-connections 1024 --timeout 300 --threads 4 --max-requests-jitter 300 app:app
+    environment:
+      POSTGRES_USER: stock
+      POSTGRES_PASSWORD: D3nt15t_
+      POSTGRES_DB: postgres
+  
+ 
+ 
+  redis:
+    image: redis:alpine
+
+
+  celery:
+    restart: always
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    image: hackathonlinc.azurecr.io/celery
+    command: celery -A app.celery worker 
+    environment:
+      - DB_HOST=postgrelinc.postgres.database.azure.com
+      - DB_NAME=postgres
+      - DB_USER=stock
+      - DB_PASSWORD=D3nt15t_
+    depends_on:
+      - redis
+      - python
+ 
+  celery-beat:
+    restart: always
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    image: hackathonlinc.azurecr.io/celery-beat
+    command: celery -A app.celery beat --schedule=/tmp/celerybeat-schedule
+    environment:
+      - DB_HOST=postgrelinc.postgres.database.azure.com
+      - DB_NAME=postgres
+      - DB_USER=stock
+      - DB_PASSWORD=D3nt15t_
+
+    depends_on:
+      - redis
+      - python
+
+  reverse-proxy:
+    build:
+      context: .
+      dockerfile: ./reverse_proxy/Dockerfile
+    image: hackathonlinc.azurecr.io/reverse_proxy
+    # image: nginx:1.17.10
+    depends_on:
+      - vue
+      #- python
+
+    # volumes:
+    #    - ./reverse_proxy/nginx.conf:/etc/nginx/nginx.conf
+
+    ports:
+      - 80:80
+    # network_mode: bridge
+
+  vue:
+    # container_name: vue
+    # hostname: vue
+    build:
+      context: ./frontend
+    image: hackathonlinc.azurecr.io/vue
+    ports:
+      - "8080:80"
+    #depends_on:
+    #  - python
+    # network_mode: bridge
